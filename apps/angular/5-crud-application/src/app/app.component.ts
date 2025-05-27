@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { randText } from '@ngneat/falso';
+import { Todo } from './interfaces/todo.interface';
 
 @Component({
   imports: [CommonModule],
@@ -15,26 +16,25 @@ import { randText } from '@ngneat/falso';
   styles: [],
 })
 export class AppComponent implements OnInit {
-  todos!: any[];
-
-  constructor(private http: HttpClient) {}
+  private readonly _http: HttpClient = inject(HttpClient);
+  todos!: Todo[];
 
   ngOnInit(): void {
-    this.http
-      .get<any[]>('https://jsonplaceholder.typicode.com/todos')
+    this._http
+      .get<Todo[]>('https://jsonplaceholder.typicode.com/todos')
       .subscribe((todos) => {
         this.todos = todos;
       });
   }
 
-  update(todo: any) {
-    this.http
-      .put<any>(
+  update(todo: Todo) {
+    this._http
+      .put<Todo>(
         `https://jsonplaceholder.typicode.com/todos/${todo.id}`,
         JSON.stringify({
           todo: todo.id,
           title: randText(),
-          body: todo.body,
+          completed: todo.completed,
           userId: todo.userId,
         }),
         {
@@ -43,7 +43,7 @@ export class AppComponent implements OnInit {
           },
         },
       )
-      .subscribe((todoUpdated: any) => {
+      .subscribe((todoUpdated: Todo) => {
         this.todos[todoUpdated.id - 1] = todoUpdated;
       });
   }
