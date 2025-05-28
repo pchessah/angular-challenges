@@ -1,4 +1,5 @@
-import { Component, inject, linkedSignal } from '@angular/core';
+import { Component, DestroyRef, inject, linkedSignal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { randText } from '@ngneat/falso';
 import { Todo } from './interfaces/todo.interface';
 import { TodoService } from './services/todo.service';
@@ -37,6 +38,7 @@ import { TodoService } from './services/todo.service';
 })
 export class AppComponent {
   private readonly _todoService = inject(TodoService);
+  private readonly _destroyRef = inject(DestroyRef);
 
   todos = linkedSignal<Todo[]>(
     () => this._todoService.todosHttpResource.value() ?? [],
@@ -48,8 +50,15 @@ export class AppComponent {
       title: randText(),
       completed: !todo.completed,
     };
-    this._todoService.updateTodo(todoUpdated).subscribe((todoUpdated: Todo) => {
-      this.todos()[todoUpdated.id - 1] = todoUpdated;
-    });
+    this._todoService
+      .updateTodo(todoUpdated)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe((todoUpdated: Todo) => {
+        this.todos.set(
+          this.todos().map((todo) =>
+            todo.id === todoUpdated.id ? todoUpdated : todo,
+          ),
+        );
+      });
   }
 }
