@@ -27,5 +27,9 @@ export class TodoService {
     );
   }
 
+  deleteTodo(todo: Todo): Observable<void> {
+    return this._http.delete<void>(`${this._baseUrl}/${todo.id}`);
+  }
+
   todosHttpResource = httpResource<Todo[]>(this._baseUrl, { defaultValue: [] });
 }

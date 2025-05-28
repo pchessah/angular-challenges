@@ -11,8 +11,9 @@ import { TodoService } from './services/todo.service';
     <main class="container">
       @for (todo of todos(); track todo.id) {
         <div class="todo">
-          {{ todo.title }}
+          <span>{{ todo.title }}</span>
           <button (click)="update(todo)">Update</button>
+          <button (click)="delete(todo)">Delete</button>
         </div>
       }
     </main>
@@ -32,6 +33,7 @@ import { TodoService } from './services/todo.service';
       .todo {
         display: flex;
         justify-content: space-between;
+        align-items: center;
       }
     `,
   ],
@@ -59,6 +61,15 @@ export class AppComponent {
             todo.id === todoUpdated.id ? todoUpdated : todo,
           ),
         );
+      });
+  }
+
+  delete(todo: Todo) {
+    this._todoService
+      .deleteTodo(todo)
+      .pipe(takeUntilDestroyed(this._destroyRef))
+      .subscribe(() => {
+        this.todos.set(this.todos().filter((t) => t.id !== todo.id));
       });
   }
 }
