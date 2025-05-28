@@ -1,29 +1,46 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, inject, linkedSignal } from '@angular/core';
 import { randText } from '@ngneat/falso';
 import { Todo } from './interfaces/todo.interface';
 import { TodoService } from './services/todo.service';
 
 @Component({
-  imports: [CommonModule],
+  imports: [],
   selector: 'app-root',
   template: `
-    <div *ngFor="let todo of todos">
-      {{ todo.title }}
-      <button (click)="update(todo)">Update</button>
-    </div>
+    <main class="container">
+      @for (todo of todos(); track todo.id) {
+        <div class="todo">
+          {{ todo.title }}
+          <button (click)="update(todo)">Update</button>
+        </div>
+      }
+    </main>
   `,
-  styles: [],
+  styles: [
+    `
+      .container {
+        display: flex;
+        padding: 1rem;
+        flex-direction: column;
+        gap: 1rem;
+        max-width: 75vw;
+        margin: 0 auto;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+      }
+      .todo {
+        display: flex;
+        justify-content: space-between;
+      }
+    `,
+  ],
 })
-export class AppComponent implements OnInit {
-  private readonly _todoService: TodoService = inject(TodoService);
-  todos!: Todo[];
+export class AppComponent {
+  private readonly _todoService = inject(TodoService);
 
-  ngOnInit(): void {
-    this._todoService.getTodos().subscribe((todos) => {
-      this.todos = todos;
-    });
-  }
+  todos = linkedSignal<Todo[]>(
+    () => this._todoService.todosHttpResource.value() ?? [],
+  );
 
   update(todo: Todo) {
     const todoUpdated: Todo = {
@@ -32,7 +49,7 @@ export class AppComponent implements OnInit {
       completed: !todo.completed,
     };
     this._todoService.updateTodo(todoUpdated).subscribe((todoUpdated: Todo) => {
-      this.todos[todoUpdated.id - 1] = todoUpdated;
+      this.todos()[todoUpdated.id - 1] = todoUpdated;
     });
   }
 }

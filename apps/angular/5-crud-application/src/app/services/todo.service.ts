@@ -1,4 +1,4 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, httpResource } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Todo } from '../interfaces/todo.interface';
@@ -26,4 +26,6 @@ export class TodoService {
       },
     );
   }
+
+  todosHttpResource = httpResource<Todo[]>(this._baseUrl, { defaultValue: [] });
 }
